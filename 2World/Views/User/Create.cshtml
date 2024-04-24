@@ -1,0 +1,66 @@
+﻿@model User
+@{
+    ViewData["Title"] = "Add user";
+}
+<div class="wrapper">
+    <div class="card-header py-3 d-flex justify-content-between">
+        <h5 class="m-0 font-weight-bold text-primary">Add user</h5>
+    </div>
+    @{
+        if (!string.IsNullOrEmpty(ViewBag.Msg))
+        {
+            <div class="mt-3 alert alert-@ViewBag.Status">@ViewBag.Msg</div>
+        }
+    }
+    <form id="userForm" class="row g-3 needs-validation mt-5" novalidate asp-action="Create" method="post">
+        <div class="text-danger formMsg"></div>
+        <div asp-validation-summary="ModelOnly" class="alert-danger"></div>
+        <div class="col-md-6">
+            <label asp-for="Name" class="form-label">User name</label>
+            <input asp-for="Name" type="text" class="form-control userName" required>
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="Email" class="form-label">User email</label>
+            <input asp-for="Email" type="email" class="form-control userEmail" placeholder="abc@gmail.com" required>
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="Phone" class="form-label">User phone</label>
+            <input asp-for="Phone" type="text" class="form-control userPhone" required>
+            <span asp-validation-for="Phone" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="Role_Id" class="form-label">Roles</label>
+            <select asp-for="Role_Id" class="form-select" aria-label="Role select">
+                @foreach (var role in ViewBag.Roles)
+                {
+                    <option value="@role.Id">@role.Name</option>
+                }
+            </select>
+            <span asp-validation-for="Role_Id" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="Password" class="form-label">Password</label>
+            <div class="d-flex justify-content-center align-item-center">
+                <input asp-for="Password" id="passwordField" type="password" class="form-control" required>
+                <div class="btn showPW" data-target="passwordField"><i class="fa-solid fa-eye"></i></div>
+            </div>
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+        
+        <div class="col-md-6">
+            <label class="form-label">Retype password</label>
+            <div class="d-flex justify-content-center align-item-center">
+                <input name="reTypePw" id="retypePasswordField" type="password" class="form-control" required>
+                <div class="btn showPW" data-target="retypePasswordField"><i class="fa-solid fa-eye"></i></div>
+            </div>
+            <div id="message"></div>
+        </div>
+
+
+        <div class="col-12">
+            <button class="btn btn-primary" type="submit">Save</button>
+        </div>
+    </form>
+</div>

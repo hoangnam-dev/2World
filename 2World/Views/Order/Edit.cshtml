@@ -1,0 +1,137 @@
+﻿@model _2World.Models.ViewModels.OrderViewModel
+@{
+    ViewData["Title"] = "Edit";
+    string orderStatus = "Pending";
+    switch (Model.Status)
+    {
+        case 1:
+            orderStatus = "Delivery";
+            break;
+        case 2:
+            orderStatus = "Completed";
+            break;
+    }
+}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h5 class="m-0 font-weight-bold text-primary">Order Detail</h5>
+    </div>
+    @{
+        if (!string.IsNullOrEmpty(ViewBag.Msg))
+        {
+            <div class="mt-3 alert alert-@ViewBag.Status">@ViewBag.Msg</div>
+        }
+    }
+    <div class="card-body">
+        <form asp-controller="Order" asp-action="Edit" method="post">
+            <input type="hidden" name="Id" value="@Model.Id" />
+            <input type="hidden" name="Status" value="@Model.Status" />
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Customer Information</h5>
+                            <p class="card-text">Name: @Model.CustomerName</p>
+                            <p class="card-text">Address: @Model.CustomerAddress</p>
+                            <p class="card-text">Email: @Model.CustomerEmail</p>
+                            <p class="card-text">Phone: @Model.CustomerPhone</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Order Information</h5>
+                            <p class="card-text">Order ID: @Model.Id</p>
+                            <p class="card-text">Order Date: @Model.Order_Date</p>
+                            <p class="card-text">
+                                Delivery Date:
+                                @{
+                                    if (Model.Status == 0)
+                                    {
+                                        <input type="date" class="form-control w-50" name="delivery" id="datetimeInput">
+                                    }
+                                    else
+                                    {
+                                        <span>@Model.Delivery_Date</span>
+                                    }
+                                }
+                            </p>
+                            <p class="card-text">Status: @orderStatus</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @{
+                if (Model.Status != 2)
+                {
+                    <button type="submit" class="btn btn-info">Save</button>
+                }
+                else
+                {
+                    <div class="btn btn-success">Completed</div>
+                }
+            }
+        </form>
+        <div class="table-responsive mt-3">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Product Name</th>
+                        <th scope="col">Product Price</th>
+                        <th scope="col">Product Quantity</th>
+                        <th scope="col">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.OrderItems)
+                    {
+                        <tr>
+                            <td>@item.ProductName</td>
+                            <td>@item.Price</td>
+                            <td>@item.Quantity</td>
+                            <td>@(item.Quantity * item.Price)</td>
+                        </tr>
+                    }
+                    <tr class="bg-gray-200">
+                        <td class="text-black"><strong>Total:</strong></td>
+                        <td colspan="2"></td>
+                        <td class="font-weight-bold text-black ">@Model.TotalAmount</td>
+                    </tr>
+                </tbody>
+            </table>
+            @{
+                if (Model.Status == 0 || Model.Status == 1)
+                {
+
+                    <div class="d-flex justify-content-center">
+                        <button class="btn btn-danger btnDelete" data-bs-toggle="modal" data-bs-target="#btnCancel" data-id="@Model.Id">Delete</button>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="btnCancel" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form asp-action="Cancel" asp-route-id="@Model.Id" method="post">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Notification</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="formDeleteContent" class="modal-body">
+                    <span>Are you sure?</span>
+                    <input id="itemId" type="hidden" name="id" value="" />
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-outline-danger">Delete</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

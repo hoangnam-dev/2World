@@ -1,0 +1,240 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    string currentController = ViewContext.RouteData.Values["controller"].ToString();
+    int roleId = int.Parse(HttpContextAccessor.HttpContext.Session.GetString("UserRole"));
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - 2World @currentController</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <!-- Custom fonts for this template-->
+    <link href="~/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+          rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="~/css/sb-admin-2.min.css" rel="stylesheet">
+</head>
+<body id="page-top">
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+            <!-- Sidebar - Brand -->
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" asp-controller="Home" asp-action="Index">
+                <div class="sidebar-brand-icon rotate-n-15">
+                    <i class="fas fa-laugh-wink"></i>
+                </div>
+                <div class="sidebar-brand-text mx-3">2World</div>
+            </a>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider my-0">
+
+            <!-- Nav Item - Dashboard -->
+            <li class="nav-item active">
+                <a class="nav-link" asp-controller="Home" asp-action="Index">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            @{
+                if (roleId == 1 || roleId == 2)
+                {
+                    <li class="nav-item ">
+                        <a class="nav-link" asp-controller="Product" asp-action="Index">
+                            <i class="fa-solid fa-box"></i>
+                            <span>Product</span>
+                        </a>
+                    </li>
+                    <li class="nav-item ">
+                        <a class="nav-link" asp-controller="Category" asp-action="Index">
+                            <i class="fa-solid fa-list"></i>
+                            <span>Category</span>
+                        </a>
+                    </li>
+                }
+            }
+            @{
+                if (roleId == 1)
+                {
+
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" asp-controller="Oder" asp-action="Index" data-toggle="collapse" data-target="#collapsePages"
+                           aria-expanded="true" aria-controls="collapsePages">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                            <span>Order</span>
+                        </a>
+                        <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
+                            <div class="bg-white py-2 collapse-inner rounded">
+                                <a class="collapse-item" asp-controller="Order" asp-action="Index">All Order</a>
+                                <a class="collapse-item" asp-controller="Order" asp-action="Index" asp-route-status="isPending">Order pending approval</a>
+                                <a class="collapse-item" asp-controller="Order" asp-action="Index" asp-route-status="isProgressed">Oder progressed</a>
+                                <a class="collapse-item" asp-controller="Order" asp-action="Index" asp-route-status="isCompleted">Order completed</a>
+                                <a class="collapse-item" asp-controller="Order" asp-action="Index" asp-route-status="isCanceled">Order Cancel</a>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="nav-item ">
+                        <a class="nav-link" asp-controller="Customer" asp-action="Index">
+                            <i class="fa-solid fa-people-group"></i>
+                            <span>Customer</span>
+                        </a>
+                    </li>
+                    <li class="nav-item ">
+                        <a class="nav-link" asp-controller="User" asp-action="Index">
+                            <i class="fa-solid fa-user"></i>
+                            <span>User</span>
+                        </a>
+                    </li>
+                }
+            }
+            @* <li class="nav-item">
+            <a class="nav-link collapsed" asp-controller="User" asp-action="Index" data-toggle="collapse" data-target="#collapsePages"
+            aria-expanded="true" aria-controls="collapsePages">
+            <i class="fa-solid fa-user"></i>
+            <span>User</span>
+            </a>
+            <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+            <a class="collapse-item" asp-controller="Role"asp-action="Index">Role</a>
+            <a class="collapse-item" asp-controller="Permission" asp-action="Index">Permission</a>
+            </div>
+            </div>
+            </li> *@
+        </ul>
+        <!-- End of Sidebar -->
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+
+                    <!-- Sidebar Toggle (Topbar) -->
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+
+                    <!-- Topbar Search -->
+                    <form method="get" class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search" asp-action="Index">
+                        <div class="input-group">
+                            <input type="text" name="searchKey" class="form-control bg-light border-0 small" placeholder="Search for..."
+                                   aria-label="Search" aria-describedby="basic-addon2">
+                            <div class="input-group-append">
+                                <button class="btn btn-primary search" type="submit">
+                                    <i class="fas fa-search fa-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Topbar Navbar -->
+                    <ul class="navbar-nav ml-auto">
+                        <!-- Nav Item - User Information -->
+                        <li class="nav-item dropdown no-arrow">
+                            <a class="nav-link dropdown-toggle" id="userDropdown" role="button"
+                               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">@HttpContextAccessor.HttpContext.Session.GetString("UserName")</span>
+                                <img class="img-profile rounded-circle"
+                                     src="~/img/undraw_profile.svg">
+                            </a>
+                            <!-- Dropdown - User Information -->
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                                 aria-labelledby="userDropdown">
+                                <a class="dropdown-item" asp-controller="Auth" asp-action="Detail" asp-route-id="@HttpContextAccessor.HttpContext.Session.GetString("UserId")">
+                                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    Profile
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <button class="dropdown-item" data-toggle="modal" data-target="#logoutModal">
+                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    Logout
+                                    @* <a asp-controller="Auth" asp-action="Logout">
+                                    </a> *@
+                                </button>
+                            </div>
+                        </li>
+
+                    </ul>
+
+                </nav>
+                <!-- End of Topbar -->
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    @RenderBody()
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+            <!-- Footer -->
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; 2World 2024</span>
+                    </div>
+                </div>
+            </footer>
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <a class="btn btn-primary" asp-area="" asp-controller="Auth" asp-action="Logout">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="~/vendor/jquery/jquery.min.js" asp-append-version="true"></script>
+    <script src="~/vendor/bootstrap/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
+    <!-- Core plugin JavaScript-->
+    <script src="~/vendor/jquery-easing/jquery.easing.min.js" asp-append-version="true"></script>
+    <!-- Custom scripts for all pages-->
+    <script src="~/js/sb-admin-2.min.js" asp-append-version="true"></script>
+    <!-- Page level plugins -->
+    <script src="~/vendor/chart.js/Chart.min.js" asp-append-version="true"></script>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://kit.fontawesome.com/22c67b3db4.js" crossorigin="anonymous" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

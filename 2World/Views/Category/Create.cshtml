@@ -1,0 +1,26 @@
+﻿@model Category
+@{
+    ViewData["Title"] = "Add category";
+}
+<div class="wrapper">
+    <div class="card-header py-3 d-flex justify-content-between">
+        <h5 class="m-0 font-weight-bold text-primary">Add category</h5>
+    </div>
+    @{
+        if (!string.IsNullOrEmpty(ViewBag.Msg))
+        {
+            <div class="mt-3 alert alert-@ViewBag.Status">@ViewBag.Msg</div>
+        }
+    }
+    <form class="row g-3 needs-validation mt-5" novalidate asp-action="Create">
+        <div class="col-md-6">
+            <label asp-for="Name" class="form-label">Category name</label>
+            <input asp-for="Name" type="text" class="form-control" required>
+            <span asp-validation-for="Name" class="text-danger"></span>
+
+        </div>
+        <div class="col-12">
+            <button class="btn btn-primary" type="submit">Save</button>
+        </div>
+    </form>
+</div>
