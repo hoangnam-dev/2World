@@ -1,14 +1,10 @@
 ﻿using _2World.Data;
 using _2World.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using System.Drawing.Printing;
-using System.Linq;
-using System.Threading.Tasks;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using OfficeOpenXml;
+using System.IO;
+
 
 namespace _2World.Controllers
 {
@@ -177,6 +173,73 @@ namespace _2World.Controllers
                 TempData["Msg"] = "Failed to delete product.";
                 TempData["Status"] = "danger";
                 return RedirectToAction(nameof(Index));
+            }
+        }
+
+        public IActionResult Export()
+        {
+            var products = context.Products
+                .Where(p => p.Deleted_At == null)
+                .Join(
+                    context.Categories,
+                    product => product.Category_Id,
+                    category => category.Id,
+                    (product, category) => new
+                    {
+                        Id = product.Id,
+                        Name = product.Name,
+                        Description = product.Description,
+                        Image = product.Image_Path,
+                        Price = product.Price,
+                        Quantity = product.Quantity,
+                        Created_At = product.Created_At,
+                        Updated_At = product.Updated_At,
+                        CategoryName = category.Name
+                    }
+                )
+                .ToList();
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using (var package = new ExcelPackage())
+            {
+                var worksheet = package.Workbook.Worksheets.Add("Products");
+
+                // Định dạng header
+                worksheet.Cells["A1"].Value = "ID";
+                worksheet.Cells["B1"].Value = "Name";
+                worksheet.Cells["C1"].Value = "Description";
+                worksheet.Cells["D1"].Value = "Price";
+                worksheet.Cells["E1"].Value = "Quantity";
+                worksheet.Cells["F1"].Value = "Category";
+                worksheet.Cells["G1"].Value = "Created at";
+                worksheet.Cells["H1"].Value = "Updated at";
+                worksheet.Cells["I1"].Value = "Image";
+
+                // Đổ dữ liệu vào từng ô
+                var dateTimeFormat = "dd/MM/yyyy HH:mm:ss";
+
+                int row = 2;
+                foreach (var product in products)
+                {
+                    worksheet.Cells[string.Format("A{0}", row)].Value = product.Id;
+                    worksheet.Cells[string.Format("B{0}", row)].Value = product.Name;
+                    worksheet.Cells[string.Format("C{0}", row)].Value = product.Description;
+                    worksheet.Cells[string.Format("D{0}", row)].Value = product.Price;
+                    worksheet.Cells[string.Format("E{0}", row)].Value = product.Quantity;
+                    worksheet.Cells[string.Format("F{0}", row)].Value = product.CategoryName;
+                    worksheet.Cells[string.Format("G{0}", row)].Value = product.Created_At;
+                    worksheet.Cells[string.Format("G{0}", row)].Style.Numberformat.Format = dateTimeFormat;
+                    worksheet.Cells[string.Format("H{0}", row)].Value = product.Updated_At;
+                    worksheet.Cells[string.Format("H{0}", row)].Style.Numberformat.Format = dateTimeFormat;
+                    worksheet.Cells[string.Format("I{0}", row)].Value = product.Image ?? "N/A";
+                    row++;
+                }
+
+                // Chuyển MemoryStream thành byte array
+                byte[] data = package.GetAsByteArray();
+
+                // Trả về file Excel
+                return File(data, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "products.xlsx");
             }
         }
     }
