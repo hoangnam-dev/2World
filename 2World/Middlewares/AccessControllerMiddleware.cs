@@ -27,12 +27,12 @@ namespace _2World.Middlewares
             if (!string.IsNullOrEmpty(context.Session.GetString("UserRole")))
             {
                 int roleId = int.Parse(context.Session.GetString("UserRole"));
-                var endpoint = context.GetEndpoint();
-                var controller = endpoint?.Metadata?.GetMetadata<Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor>();
-                string nextController = controller.ControllerName ?? "Home";
 
                 if (roleId != ADMIN)
                 {
+                    var endpoint = context.GetEndpoint();
+                    var controller = endpoint?.Metadata?.GetMetadata<Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor>();
+                    string nextController = controller.ControllerName ?? "Home";
                     switch (roleId)
                     {
                         case 2:
