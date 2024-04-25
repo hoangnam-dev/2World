@@ -38,7 +38,7 @@ namespace _2World.Controllers
                     order => order.Id,
                     orderItem => orderItem.Order_Id,
                     (order, orderItem) => new { Order = order, OrderItem = orderItem })
-                .Where(joinResult => joinResult.Order.Order_Date >= startDate && joinResult.Order.Order_Date <= endDate)
+                .Where(joinResult => joinResult.Order.Status == 2 && joinResult.Order.Order_Date >= startDate && joinResult.Order.Order_Date <= endDate)
                 .Sum(joinResult => joinResult.OrderItem.Price * joinResult.OrderItem.Quantity);
 
             return totalRevenue;
@@ -50,7 +50,7 @@ namespace _2World.Controllers
             DateTime endDate = new DateTime(year, 12, 31);
 
             decimal totalRevenue = context.Orders
-                .Where(order => order.Order_Date >= startDate && order.Order_Date <= endDate)
+                .Where(order => order.Status == 2 && order.Order_Date >= startDate && order.Order_Date <= endDate)
                 .Join(context.OrderItems,
                     order => order.Id,
                     orderItem => orderItem.Order_Id,
