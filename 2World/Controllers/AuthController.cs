@@ -1,10 +1,9 @@
 ﻿using _2World.Data;
 using _2World.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 using _2World.Models.ViewModels;
+using Microsoft.CodeAnalysis.Differencing;
 
 
 namespace _2World.Controllers
@@ -97,6 +96,20 @@ namespace _2World.Controllers
             if (ModelState.IsValid)
             {
                 var user = await context.Users.FirstOrDefaultAsync(u => u.Id == _user.Id);
+                if (!user.Email.Equals(_user.Email))
+                {
+                    bool exits = checkEmailExist(_user.Email);
+                    if (exits)
+                    {
+                        TempData["Msg"] = "Email already exits.";
+                        TempData["Status"] = "danger";
+                        return RedirectToAction(nameof(Detail), new { id = _user.Id });
+                    }
+                    else
+                    {
+                        user.Email = _user.Email;
+                    }
+                }
                 user.Name = _user.Name;
                 user.Phone = _user.Phone;
                 user.Updated_At = DateTime.Now;
@@ -122,25 +135,45 @@ namespace _2World.Controllers
                 TempData["Status"] = "danger";
                 return RedirectToAction(nameof(Detail), new { id = userId });
             }
-            var user = context.Users.FirstOrDefault(u => u.Id == userId);
-            if (BCrypt.Net.BCrypt.EnhancedVerify(oldPass, user.Password))
+            try
             {
-                user.Password = BCrypt.Net.BCrypt.EnhancedHashPassword(newPass, 13);
-                user.Updated_At = DateTime.Now;
-                context.Users.Update(user);
-                await context.SaveChangesAsync();
-                TempData["Msg"] = "User password updated.";
-                TempData["Status"] = "success";
+                var user = context.Users.FirstOrDefault(u => u.Id == userId);
+                if (BCrypt.Net.BCrypt.EnhancedVerify(oldPass, user.Password))
+                {
+                    user.Password = BCrypt.Net.BCrypt.EnhancedHashPassword(newPass, 13);
+                    user.Updated_At = DateTime.Now;
+                    context.Users.Update(user);
+                    await context.SaveChangesAsync();
+                    TempData["Msg"] = "User password updated.";
+                    TempData["Status"] = "success";
+                    return RedirectToAction(nameof(Detail), new { id = userId });
+                }
+                TempData["Msg"] = "Current password and new password do not match.";
+                TempData["Status"] = "danger";
                 return RedirectToAction(nameof(Detail), new { id = userId });
             }
-            TempData["Msg"] = "Current password and new password do not match.";
-            TempData["Status"] = "danger";
-            return RedirectToAction(nameof(Detail), new { id = userId });
+            catch
+            {
+                TempData["Msg"] = "Have error. Can not cahnge password";
+                TempData["Status"] = "danger";
+                return RedirectToAction(nameof(Detail), new { id = userId });
+            }
+
         }
         public ActionResult Logout()
         {
             HttpContext.Session.Clear();
             return RedirectToAction("Login");
+        }
+
+        public bool checkEmailExist(string email)
+        {
+            var userHaveEmail = context.Users.Where(u => u.Email.Equals(email)).Count();
+            if (userHaveEmail == 0)
+            {
+                return false;
+            }
+            return true;
         }
     }
 }
