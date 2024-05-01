@@ -2,13 +2,20 @@
 @{
     ViewData["Title"] = "Edit";
     string orderStatus = "Pending";
+    string alert = "warning";
     switch (Model.Status)
     {
         case 1:
             orderStatus = "Delivery";
+            alert = "info";
             break;
         case 2:
             orderStatus = "Completed";
+            alert = "success";
+            break;
+        case 3:
+            orderStatus = "Canceld";
+            alert = "danger";
             break;
     }
 }
@@ -31,6 +38,7 @@
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Customer Information</h5>
+                            <p class="card-text">Id: @Model.CustomerId</p>
                             <p class="card-text">Name: @Model.CustomerName</p>
                             <p class="card-text">Address: @Model.CustomerAddress</p>
                             <p class="card-text">Email: @Model.CustomerEmail</p>
@@ -57,19 +65,19 @@
                                     }
                                 }
                             </p>
-                            <p class="card-text">Status: @orderStatus</p>
+                            <p class="card-text">Status: <span class="d-none d-sm-inline-block p-1 rounded-3 alert-@alert">@orderStatus</span></p>
                         </div>
                     </div>
                 </div>
             </div>
             @{
-                if (Model.Status != 2)
+                if (Model.Status ==0)
                 {
                     <button type="submit" class="btn btn-info">Save</button>
                 }
-                else
+                if (Model.Status == 1)
                 {
-                    <div class="btn btn-success">Completed</div>
+                    <button type="submit" class="btn btn-success">Complete</button>
                 }
             }
         </form>
@@ -105,7 +113,7 @@
                 {
 
                     <div class="d-flex justify-content-center">
-                        <button class="btn btn-danger btnDelete" data-bs-toggle="modal" data-bs-target="#btnCancel" data-id="@Model.Id">Delete</button>
+                        <button class="btn btn-danger btnDelete" data-bs-toggle="modal" data-bs-target="#btnCancel" data-id="@Model.Id">Cancel</button>
                     </div>
                 }
             }
@@ -124,12 +132,13 @@
                 </div>
                 <div id="formDeleteContent" class="modal-body">
                     <span>Are you sure?</span>
-                    <input id="itemId" type="hidden" name="id" value="" />
-
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <input type="hidden" name="customerEmail" value="@Model.CustomerEmail" />
+                    <textarea name="mailBody" class="form-control" rows="3"></textarea>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-outline-danger">Delete</button>
+                    <button type="submit" class="btn btn-outline-danger">OK</button>
                 </div>
             </div>
         </form>

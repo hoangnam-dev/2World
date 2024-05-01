@@ -1,12 +1,11 @@
-﻿using _2World.Data;
-using _2World.Models;
-using _2World.Models.ViewModels;
+﻿using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.AspNetCore.Mvc;
-using static NuGet.Packaging.PackagingConstants;
-using System.Drawing.Printing;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.SqlServer.Server;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+using MimeKit;
+using _2World.Data;
+using _2World.Models.ViewModels;
+using _2World.Models;
 
 namespace _2World.Controllers
 {
@@ -14,10 +13,14 @@ namespace _2World.Controllers
     {
         private readonly AppDbContext context;
         private int PageSize = 10;
+        private readonly IConfiguration configuration;
+        private readonly ILogger<OrderController> logger;
 
-        public OrderController(AppDbContext context)
+        public OrderController(AppDbContext context, IConfiguration _configuration, ILogger<OrderController> _logger)
         {
             this.context = context;
+            this.configuration = _configuration;
+            this.logger = _logger;
         }
 
         public ActionResult Index(string? searchKey, [FromQuery(Name = "status")] string? status, int page = 1)
@@ -36,7 +39,17 @@ namespace _2World.Controllers
 
             if (!string.IsNullOrEmpty(searchKey))
             {
-                orders = orders.Where(o => o.Id == int.Parse(searchKey));
+                int orderId;
+                bool isOrderId = int.TryParse(searchKey, out orderId);
+
+                if (isOrderId)
+                {
+                    orders = orders.Where(o => o.Id == orderId);
+                }
+                else
+                {
+                    orders = orders.Where(o => o.CustomerName.Contains(searchKey));
+                }
             }
             else
             {
@@ -55,7 +68,7 @@ namespace _2World.Controllers
                             orderStatus = 3;
                             break;
                         default:
-                            orderStatus = 1;
+                            orderStatus = 0;
                             break;
                     }
                     orders = orders.Where(o => o.Status == orderStatus);
@@ -93,33 +106,34 @@ namespace _2World.Controllers
             }
 
             var order = (from item in context.Orders
-                          join customer in context.Customers on item.Customer_Id equals customer.Id
-                          where item.Id == id
-                          select new OrderViewModel
-                          {
-                              Id = item.Id,
-                              CustomerName = customer.Name,
-                              CustomerAddress = customer.Address,
-                              CustomerEmail = customer.Email,
-                              CustomerPhone = customer.Phone,
-                              Order_Date = item.Order_Date,
-                              Delivery_Date = item.Delivery_Date,
-                              Status = item.Status,
-                              TotalAmount = context.OrderItems
-                                                  .Where(oi => oi.Order_Id == item.Id)
-                                                  .Sum(oi => oi.Quantity * oi.Price),
-                              OrderItems = context.OrderItems
-                                                  .Where(oi => oi.Order_Id == item.Id)
-                                                  .Select(oi => new OrderItemViewModel
-                                                  {
-                                                      Order_Id = oi.Order_Id,
-                                                      Product_Id = oi.Product_Id,
-                                                      ProductName = oi.Product.Name,
-                                                      Price = oi.Price,
-                                                      Quantity = oi.Quantity
-                                                  })
-                                                  .ToList()
-                          }).FirstOrDefault();
+                         join customer in context.Customers on item.Customer_Id equals customer.Id
+                         where item.Id == id
+                         select new OrderViewModel
+                         {
+                             Id = item.Id,
+                             CustomerId = customer.Id,
+                             CustomerName = customer.Name,
+                             CustomerAddress = customer.Address,
+                             CustomerEmail = customer.Email,
+                             CustomerPhone = customer.Phone,
+                             Order_Date = item.Order_Date,
+                             Delivery_Date = item.Delivery_Date,
+                             Status = item.Status,
+                             TotalAmount = context.OrderItems
+                                                 .Where(oi => oi.Order_Id == item.Id)
+                                                 .Sum(oi => oi.Quantity * oi.Price),
+                             OrderItems = context.OrderItems
+                                                 .Where(oi => oi.Order_Id == item.Id)
+                                                 .Select(oi => new OrderItemViewModel
+                                                 {
+                                                     Order_Id = oi.Order_Id,
+                                                     Product_Id = oi.Product_Id,
+                                                     ProductName = oi.Product.Name,
+                                                     Price = oi.Price,
+                                                     Quantity = oi.Quantity
+                                                 })
+                                                 .ToList()
+                         }).FirstOrDefault();
 
             if (order == null)
             {
@@ -177,7 +191,7 @@ namespace _2World.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Cancel(int id)
+        public async Task<IActionResult> Cancel(int id, string customerEmail, string mailBody)
         {
             var order = await context.Orders.Include(o => o.OrderItems).FirstOrDefaultAsync(o => o.Id == id);
 
@@ -190,8 +204,9 @@ namespace _2World.Controllers
 
             if (order.Status == 2)
             {
-                ViewBag.ErrorMessage = "This order cannot be cancelled because it has already been completed.";
-                return View("Error");
+                TempData["Msg"] = "This order cannot be cancelled because it has already been completed.";
+                TempData["Status"] = "danger";
+                return RedirectToAction(nameof(Edit), new {id = id});
             }
 
             foreach (var item in order.OrderItems)
@@ -204,15 +219,22 @@ namespace _2World.Controllers
                 }
             }
 
+
             order.Status = 3;
             context.Update(order);
-
             await context.SaveChangesAsync();
 
-            TempData["Msg"] = "Order has been successfully canceled.";
-            TempData["Status"] = "success";
+            if (!SendEmail(customerEmail, "Cancel Order", id, mailBody))
+            {
+                TempData["Msg"] = "Can not send email to Customer. Order has been successfully canceled.";
+                TempData["Status"] = "warning";
+            }
+            else
+            {
+                TempData["Msg"] = "Order has been successfully canceled.";
+                TempData["Status"] = "success";
+            }
             return RedirectToAction(nameof(Index));
-
         }
 
         public bool checkDeliveryDate(DateTime orderDate, DateTime deliveryDate)
@@ -222,6 +244,48 @@ namespace _2World.Controllers
                 return false;
             }
             return true;
+        }
+
+        public bool SendEmail(string toEmail, string subject, int orderId, string body = "Shipping failed. There is no one to receive the order")
+        {
+            string SMPTServer = configuration["MailSettings:Server"];
+            int Port = int.Parse(configuration["MailSettings:Port"]);
+            string SenderName = configuration["MailSettings:SenderName"];
+            string SenderEmail = configuration["MailSettings:SenderEmail"];
+            string WebEmail = configuration["MailSettings:Email"];
+            string EmailPassword = configuration["MailSettings:Pasword"];
+            try
+            {
+                // Create message
+                var message = new MimeMessage();
+                message.From.Add(new MailboxAddress(SenderName, SenderEmail));
+                message.To.Add(MailboxAddress.Parse(toEmail));
+                message.Subject = subject;
+
+                // Create mail body
+                var bodyBuilder = new BodyBuilder();    
+                bodyBuilder.HtmlBody = $"<h1>Order Cancellation</h1>" +
+                    $"<p>We regret to inform you that your order with reference number <strong style=\"color: #FF3030;font-size: 1rem;\">{ orderId }</strong> has been cancelled.</p>" +
+                    $"<p>Reason: <strong>{body}</strong></p>"+
+                    $"<p>If you have any questions or concerns, please feel free to contact our customer service.</p>" +
+                    $"<p>Thank you for choosing our services.</p>";
+                message.Body = bodyBuilder.ToMessageBody();
+
+                // Setting SMTP info
+                using var client = new SmtpClient();
+                client.Connect(SMPTServer, Port, SecureSocketOptions.StartTls);
+                client.Authenticate(WebEmail, EmailPassword);
+
+                // Send mail
+                client.Send(message);
+                client.Disconnect(true);
+                return true;
+            }
+            catch
+            {
+                logger.LogError("Cannot send email.");
+                return false;
+            }
         }
     }
 }

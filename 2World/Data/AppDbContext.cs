@@ -62,11 +62,6 @@ namespace _2World.Data
             .WithMany(c => c.Orders)
             .HasForeignKey(o => o.Customer_Id);
 
-            modelBuilder.Entity<Order>()
-                .HasOne(o => o.User)
-                .WithMany(u => u.Orders)
-                .HasForeignKey(o => o.User_Id);
-
             modelBuilder.Entity<OrderItem>()
                 .HasOne(oi => oi.Order)
                 .WithMany(o => o.OrderItems)

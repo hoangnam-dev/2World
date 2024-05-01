@@ -1,8 +1,6 @@
 ﻿using _2World.Data;
 using _2World.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 
 namespace _2World.Controllers
@@ -28,7 +26,17 @@ namespace _2World.Controllers
 
             if (!string.IsNullOrEmpty(searchKey))
             {
-                users = users.Where(u => u.Name.Contains(searchKey));
+                int userId;
+                bool isUserId = int.TryParse(searchKey, out userId);
+
+                if (isUserId)
+                {
+                    users = users.Where(o => o.Id == userId);
+                }
+                else
+                {
+                    users = users.Where(c => c.Name.Contains(searchKey));
+                }
             }
 
             if (TempData["Msg"] != null)
@@ -128,22 +136,38 @@ namespace _2World.Controllers
             }
             if (ModelState.IsValid)
             {
+                var _user = context.Users.FirstOrDefault(c => c.Id == user.Id);
                 if (newPass != null)
                 {
                     if (retypePass == null || !newPass.Equals(retypePass))
                     {
                         TempData["Msg"] = "Retype password do not match.";
                         TempData["Status"] = "danger";
-                        return RedirectToAction(nameof(Edit), new { id = user.Id });
+                        return RedirectToAction(nameof(Edit), new { id = _user.Id });
                     }
-                    user.Password = BCrypt.Net.BCrypt.EnhancedHashPassword(newPass, 13);
+                    _user.Password = BCrypt.Net.BCrypt.EnhancedHashPassword(newPass, 13);
                 }
-                user.Updated_At = DateTime.Now;
-                context.Update(user);
+                
+                if (!_user.Email.Equals(user.Email))
+                {
+                    bool exits = checkEmailExist(user.Email);
+                    if (exits)
+                    {
+                        TempData["Msg"] = "Email already exits.";
+                        TempData["Status"] = "danger";
+                        return RedirectToAction(nameof(Edit), new { id = _user.Id });
+                    }
+                    else
+                    {
+                        _user.Email = user.Email;
+                    }
+                }
+                _user.Updated_At = DateTime.Now;
+                context.Update(_user);
                 await context.SaveChangesAsync();
                 TempData["Msg"] = "User has been successfully edited.";
                 TempData["Status"] = "success";
-                return RedirectToAction(nameof(Edit), new { id = user.Id });
+                return RedirectToAction(nameof(Edit), new { id = _user.Id });
             }
             ModelState.AddModelError(string.Empty, "Failed to edit user.");
             return RedirectToAction(nameof(Edit));

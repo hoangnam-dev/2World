@@ -33,6 +33,5 @@ namespace _2World.Models
         [BindNever]
         [ForeignKey("Id")]
         public Role? Role { get; set; }
-        public ICollection<Order>? Orders { get; set; }
     }
 }

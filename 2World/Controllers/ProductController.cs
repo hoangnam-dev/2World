@@ -3,7 +3,6 @@ using _2World.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
-using System.IO;
 
 
 namespace _2World.Controllers
@@ -27,7 +26,17 @@ namespace _2World.Controllers
 
             if (!string.IsNullOrEmpty(searchKey))
             {
-                products = products.Where(p => p.Name.Contains(searchKey));
+                int productId;
+                bool isProductId = int.TryParse(searchKey, out productId);
+
+                if (isProductId)
+                {
+                    products = products.Where(p => p.Id == productId);
+                }
+                else
+                {
+                    products = products.Where(p => p.Name.Contains(searchKey));
+                }
             }
             int totalItem = products.Count();
             ViewBag.TotalPage = (int)Math.Ceiling((decimal)totalItem / PageSize);
@@ -138,7 +147,6 @@ namespace _2World.Controllers
                     product.Image_Path = uniqueFileName;
                 }
                 context.Update(product);
-                Console.WriteLine(product.Image_Path);
                 await context.SaveChangesAsync();
                 ViewBag.Msg = "Product has been successfully edited.";
                 ViewBag.Status = "success";

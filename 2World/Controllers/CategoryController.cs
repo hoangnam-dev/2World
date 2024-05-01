@@ -1,8 +1,6 @@
 ﻿using _2World.Data;
 using _2World.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,7 +22,17 @@ namespace _2World.Controllers
 
             if (!string.IsNullOrEmpty(searchKey))
             {
-                categories = categories.Where(c => c.Name.Contains(searchKey));
+                int customerId;
+                bool isCategoryId = int.TryParse(searchKey, out customerId);
+
+                if (isCategoryId)
+                {
+                    categories = categories.Where(c => c.Id == customerId);
+                }
+                else
+                {
+                    categories = categories.Where(c => c.Name.Contains(searchKey));
+                }
             }
 
             int totalItem = context.Categories.Count();

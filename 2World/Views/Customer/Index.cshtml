@@ -28,6 +28,7 @@
                         <th scope="col">Name</th>
                         <th scope="col">Email</th>
                         <th scope="col">Phone</th>
+                        <th scope="col">Created at</th>
                         <th scope="col">Handle</th>
                     </tr>
                 </thead>
@@ -39,6 +40,7 @@
                             <td>@customer.Name</td>
                             <td>@customer.Email</td>
                             <td>@customer.Phone</td>
+                            <td>@customer.Created_At</td>
                             <td>
                                 <div class="d-flex">
                                     <a class="btn btn-info mr-2" asp-controller="Customer" asp-action="Edit" asp-route-id="@customer.Id">Detail</a>

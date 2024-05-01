@@ -19,11 +19,6 @@ namespace _2World.Models
         public int Customer_Id { get; set; }
         [ForeignKey("Id")]
         public Customer? Customer { get; set; }
-        [Required]
-        public int User_Id { get; set; }
-
-        [ForeignKey("Id")]
-        public User? User { get; set; }
         public ICollection<OrderItem> OrderItems { get; set; }
     }
 }

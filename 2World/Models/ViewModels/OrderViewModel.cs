@@ -5,6 +5,7 @@ namespace _2World.Models.ViewModels
     public class OrderViewModel
     {
         public int Id { get; set; }
+        public int CustomerId { get; set; }
         public string CustomerName { get; set; }
         public string CustomerAddress { get; set; }
         public string CustomerEmail { get; set; }

@@ -1,9 +1,6 @@
 ﻿using _2World.Data;
 using _2World.Models;
-using BCrypt.Net;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace _2World.Controllers
 {
@@ -23,7 +20,17 @@ namespace _2World.Controllers
 
             if (!string.IsNullOrEmpty(searchKey))
             {
-                customers = customers.Where(c => c.Name.Contains(searchKey));
+                int customerId;
+                bool isCustomerId = int.TryParse(searchKey, out customerId);
+                
+                if (isCustomerId)
+                {
+                    customers = customers.Where(c => c.Id == customerId);
+                }
+                else
+                {
+                    customers = customers.Where(c => c.Name.Contains(searchKey));
+                }
             }
             int totalItem = customers.Count();
             ViewBag.TotalPage = (int)Math.Ceiling((decimal)totalItem / PageSize);
@@ -99,7 +106,11 @@ namespace _2World.Controllers
                 TempData["Status"] = "warning";
                 return RedirectToAction(nameof(Index));
             }
-
+            if (TempData["Msg"] != null)
+            {
+                ViewBag.Msg = TempData["Msg"] != null ? TempData["Msg"].ToString() : "";
+                ViewBag.Status = TempData["Status"] != null ? TempData["Status"].ToString() : "";
+            }
             return View(customer);
         }
 
@@ -114,12 +125,27 @@ namespace _2World.Controllers
                 {
                     customer.Password = BCrypt.Net.BCrypt.EnhancedHashPassword(newPass, 13);
                 }
-                customer.Updated_At = DateTime.Now;
-                context.Update(customer);
+                var _customer = context.Customers.FirstOrDefault(c => c.Id == customer.Id);
+                if (!_customer.Email.Equals(customer.Email))
+                {
+                    bool exits = checkEmailExist(customer.Email);
+                    if (exits)
+                    {
+                        ViewBag.Msg = "Email already exits.";
+                        ViewBag.Status = "danger";
+                        return View(_customer);
+                    }
+                    else
+                    {
+                        _customer.Email = customer.Email;
+                    }
+                }
+                _customer.Updated_At = DateTime.Now;
+                context.Update(_customer);
                 await context.SaveChangesAsync();
                 ViewBag.Msg = "Customer has been successfully edited.";
                 ViewBag.Status = "success";
-                return View(customer);
+                return View(_customer);
             }
             ModelState.AddModelError(string.Empty, "Failed to edit customer.");
             return View(customer);

@@ -1,9 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using System.Net;
-using System.Threading.Tasks;
-
-namespace _2World.Middlewares
+﻿namespace _2World.Middlewares
 {
     // You may need to install the Microsoft.AspNetCore.Http.Abstractions package into your project
     public class AccessControllerMiddleware
@@ -12,8 +7,6 @@ namespace _2World.Middlewares
         private readonly string[] _accessUserController = { "Auth", "Home", "Product", "Category" };
         private readonly string[] _accessGuestController = { "Auth", "Home" };
         private int ADMIN = 1;
-        private int USER = 2;
-        private int GUEST = 3;
 
         private readonly RequestDelegate _next;
 

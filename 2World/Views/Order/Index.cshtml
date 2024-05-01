@@ -5,10 +5,23 @@
     int TotalPages = ViewBag.TotalPage;
     int CurrentPage = ViewBag.CurrentPage;
     string status = HttpContextAccessor.HttpContext.Request.Query["status"];
-    // if (string.IsNullOrEmpty(status))
-    // {
-    //     status = "isPending";
-    // }
+    string orderStatus = "Pending";
+    string alert = "warning";
+    switch (status)
+    {
+        case "isDelivery":
+            orderStatus = "Delivery";
+            alert = "info";
+            break;
+        case "isConpleted":
+            orderStatus = "Completed";
+            alert = "success";
+            break;
+        case "isCancel":
+            orderStatus = "Canceld";
+            alert = "danger";
+            break;
+    }
     ViewData["Title"] = "Order";
 
 }
@@ -41,19 +54,22 @@
                             <td>@order.CustomerName</td>
                             <td>@order.Order_Date</td>
                             <td>
-                                @if (order.Status == 0)
-                                {
-                                    <span class="alert alert-warning">Pending</span>
-                                }
-                                else
-                                {
-                                    @if (order.Status == 2)
+                                @{
+                                    if (order.Status == 0)
                                     {
-                                        <span class="alert alert-success">Completed</span>
+                                        <span class="d-none d-sm-inline-block p-1 rounded-3 alert-warning">Pendding</span>
                                     }
-                                    else
+                                    if (order.Status == 1)
                                     {
                                         @order.Delivery_Date
+                                    }
+                                    if (order.Status == 2)
+                                    {
+                                        <span class="d-none d-sm-inline-block p-1 rounded-3 alert-success">Conpleted</span>
+                                    }
+                                    if (order.Status == 3)
+                                    {
+                                        <span class="d-none d-sm-inline-block p-1 rounded-3 alert-danger">Canceled</span>
                                     }
                                 }
                             </td>

@@ -1,7 +1,6 @@
 ﻿using _2World.Data;
 using _2World.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 
 namespace _2World.Controllers
@@ -17,7 +16,7 @@ namespace _2World.Controllers
             context = _context;
         }
 
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
             int month = DateTime.Now.Month;
             ViewBag.TotalRevenueInMonth = GetTotalRevenueInMonth(month);
