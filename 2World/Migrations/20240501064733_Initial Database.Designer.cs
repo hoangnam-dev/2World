@@ -12,8 +12,8 @@ using _2World.Data;
 namespace _2World.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240423141939_Initial database")]
-    partial class Initialdatabase
+    [Migration("20240501064733_Initial Database")]
+    partial class InitialDatabase
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -113,14 +113,9 @@ namespace _2World.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<int>("User_Id")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("Customer_Id");
-
-                    b.HasIndex("User_Id");
 
                     b.ToTable("Order", (string)null);
                 });
@@ -315,15 +310,7 @@ namespace _2World.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("_2World.Models.User", "User")
-                        .WithMany("Orders")
-                        .HasForeignKey("User_Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Customer");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("_2World.Models.OrderItem", b =>
@@ -416,11 +403,6 @@ namespace _2World.Migrations
                     b.Navigation("RolePermissions");
 
                     b.Navigation("Users");
-                });
-
-            modelBuilder.Entity("_2World.Models.User", b =>
-                {
-                    b.Navigation("Orders");
                 });
 #pragma warning restore 612, 618
         }

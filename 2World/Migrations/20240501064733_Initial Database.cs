@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace _2World.Migrations
 {
     /// <inheritdoc />
-    public partial class Initialdatabase : Migration
+    public partial class InitialDatabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -107,6 +107,28 @@ namespace _2World.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Order",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Order_Date = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Delivery_Date = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    Customer_Id = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Order", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Order_Customer_Customer_Id",
+                        column: x => x.Customer_Id,
+                        principalTable: "Customer",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "RolePermissions",
                 columns: table => new
                 {
@@ -157,35 +179,6 @@ namespace _2World.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Order",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Order_Date = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Delivery_Date = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Status = table.Column<int>(type: "int", nullable: false),
-                    Customer_Id = table.Column<int>(type: "int", nullable: false),
-                    User_Id = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Order", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Order_Customer_Customer_Id",
-                        column: x => x.Customer_Id,
-                        principalTable: "Customer",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Order_User_User_Id",
-                        column: x => x.User_Id,
-                        principalTable: "User",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "OrderItem",
                 columns: table => new
                 {
@@ -217,11 +210,6 @@ namespace _2World.Migrations
                 name: "IX_Order_Customer_Id",
                 table: "Order",
                 column: "Customer_Id");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Order_User_Id",
-                table: "Order",
-                column: "User_Id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderItem_Order_Id",
@@ -259,6 +247,9 @@ namespace _2World.Migrations
                 name: "RolePermissions");
 
             migrationBuilder.DropTable(
+                name: "User");
+
+            migrationBuilder.DropTable(
                 name: "Order");
 
             migrationBuilder.DropTable(
@@ -268,16 +259,13 @@ namespace _2World.Migrations
                 name: "Permission");
 
             migrationBuilder.DropTable(
+                name: "Role");
+
+            migrationBuilder.DropTable(
                 name: "Customer");
 
             migrationBuilder.DropTable(
-                name: "User");
-
-            migrationBuilder.DropTable(
                 name: "Category");
-
-            migrationBuilder.DropTable(
-                name: "Role");
         }
     }
 }
