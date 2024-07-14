@@ -21,7 +21,6 @@ namespace _2World.Controllers
             ViewBag.TotalPage = (int)Math.Ceiling((decimal)totalItem / PageSize);
             ViewBag.CurrentPage = page;
 
-            //users = users.Skip((page - 1) * PageSize).Take(PageSize);
             IQueryable<User> users = context.Users.Where(u => u.Deleted_At == null).Skip((page - 1) * PageSize).Take(PageSize).OrderByDescending(u => u.Created_At);
 
             if (!string.IsNullOrEmpty(searchKey))
@@ -147,7 +146,7 @@ namespace _2World.Controllers
                     }
                     _user.Password = BCrypt.Net.BCrypt.EnhancedHashPassword(newPass, 13);
                 }
-                
+
                 if (!_user.Email.Equals(user.Email))
                 {
                     bool exits = checkEmailExist(user.Email);
